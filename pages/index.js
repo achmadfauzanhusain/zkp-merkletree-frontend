@@ -4,10 +4,20 @@ export default function Home() {
   const [secret, setSecret] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleGenerateProof = () => {
-    setLoading(true);
-    // Your proof generation logic here
-    setLoading(false);
+  const [proof, setProof] = useState(null)
+  const [publicSignals, setPublicSignals] = useState(null)
+
+  const handleGenerateProof = async() => {
+    try {
+      setLoading(true);
+      const { proof, publicSignals } = await generateProof(secret)
+      setProof(proof)
+      setPublicSignals(publicSignals)
+    } catch (error) {
+      console.error("Error generating proof:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
