@@ -18,14 +18,13 @@ export default function Home() {
     try {
       setLoading(true);
       const { proof, publicSignals, root, leaf } = await generateProof(secret, index)
-      console.log(leaf, root)
 
       setProof(proof)
       setPublicSignals(publicSignals)
       setLeaf(leaf)
       setRoot(root)
     } catch (error) {
-      console.error("Error generating proof:", error);
+      console.log("Error generating proof:", error);
     } finally {
       setLoading(false);
     }
@@ -36,13 +35,13 @@ export default function Home() {
     const data = { proof, publicSignals, leaf, root }
     try {
       const response = await setLogin(data)
-      if(response.data.success === false) {
-        alert("Login failed: " + response.message)
+      if(response.error) {
+        console.log("Login failed: " + response.message)
       } else {
         const token = response.data.token
         const tokenBase64 = btoa(token);
         Cookies.set("token", tokenBase64, { expires: 7 });
-        
+        console.log(response.data.message)
       }
     } catch (error) {
       console.error("Error generating proof:", error);
