@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { generateProof } from "@/lib/zk/generateProof";
+import { setLogin } from "@/services/auth";
+
+import Cookies from "js-cookie";
 
 export default function Home() {
   const [secret, setSecret] = useState("");
@@ -8,21 +11,45 @@ export default function Home() {
 
   const [proof, setProof] = useState(null)
   const [publicSignals, setPublicSignals] = useState(null)
+  const [leaf, setLeaf] = useState(null)
+  const [root, setRoot] = useState(null)
 
   const handleGenerateProof = async() => {
     try {
       setLoading(true);
-      const { proof, publicSignals } = await generateProof(secret, index)
-      console.log("proof :", JSON.stringify(proof))
-      console.log("publicSignals :", publicSignals)
-      // setProof(proof)
-      // setPublicSignals(publicSignals)
+      const { proof, publicSignals, root, leaf } = await generateProof(secret, index)
+      console.log(leaf, root)
+
+      setProof(proof)
+      setPublicSignals(publicSignals)
+      setLeaf(leaf)
+      setRoot(root)
     } catch (error) {
       console.error("Error generating proof:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleLogin = async() => {
+    setLoading(true);
+    const data = { proof, publicSignals, leaf, root }
+    try {
+      const response = await setLogin(data)
+      if(response.data.success === false) {
+        alert("Login failed: " + response.message)
+      } else {
+        const token = response.data.token
+        const tokenBase64 = btoa(token);
+        Cookies.set("token", tokenBase64, { expires: 7 });
+        
+      }
+    } catch (error) {
+      console.error("Error generating proof:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="mt-24 px-32">
@@ -44,6 +71,38 @@ export default function Home() {
         />
         <button className="bg-blue-400 text-white w-full py-3 mt-2 cursor-pointer hover:bg-blue-500 transition-all duration-300" onClick={handleGenerateProof}>
           {loading ? "generating..." : "generate proof!"}
+        </button>
+      </div>
+      {proof && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold">Proof :</h2>
+          <pre className="bg-gray-100 p-4 overflow-auto">{JSON.stringify(proof, null, 2)}</pre>
+        </div>
+      )}
+      {publicSignals && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold">Public Signals :</h2>
+          <pre className="bg-gray-100 p-4 overflow-auto">{JSON.stringify(publicSignals, null, 2)}</pre>
+        </div>
+      )}
+      {leaf && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold">Leaf :</h2>
+          <pre className="bg-gray-100 p-4 overflow-auto">{JSON.stringify(leaf, null, 2)}</pre>
+        </div>
+      )}
+      {root && (
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold">Root :</h2>
+          <pre className="bg-gray-100 p-4 overflow-auto">{JSON.stringify(root, null, 2)}</pre>
+        </div>
+      )}
+      <div className="mt-24">
+        <h1 className="text-3xl font-semibold">Login</h1>
+        <p className="text-sm opacity-75">result of generate proof is automatically use!</p>
+
+        <button className="bg-blue-400 text-white w-full py-3 mt-2 cursor-pointer hover:bg-blue-500 transition-all duration-300" onClick={handleLogin}>
+          {loading ? "loading..." : "login"}
         </button>
       </div>
     </div>
